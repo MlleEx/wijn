@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wijnkelder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Cinzel:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #2c1318;
+      --surface:   #381820;
+      --surface2:  #421e28;
+      --surface3:  #4e2830;
+      --border:    rgba(210,110,130,0.22);
+      --border2:   rgba(210,110,130,0.1);
+      --burg:      #8e1a2e;
+      --burg-mid:  #be2244;
+      --burg-light:#d84060;
+      --burg-pale: #e47888;
+      --rose:      #c87888;
+      --cream:     #f2e4d8;
+      --cream2:    #d4c0ac;
+      --cream3:    #a88a78;
+      --gold:      #d4a060;
+      --gold-light:#eec080;
+      --muted:     #9a7078;
+      --text:      #eeddd0;
+      --white:     #fdf0e4;
+      --green:     #5a8a6a;
+      --green-light:#7aba8a;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.3;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    /* HERO */
+    .hero { position: relative; padding: 4.5rem 3.5rem 3rem; overflow: hidden; z-index: 1; }
+    .hero-glow { position: absolute; top: -150px; right: -100px; width: 650px; height: 650px; background: radial-gradient(circle, rgba(140,26,46,0.35) 0%, transparent 65%); pointer-events: none; }
+    .hero-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem; }
+    .hero-eyebrow { font-family: 'Cinzel', serif; font-size: 0.58rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--burg-mid); margin-bottom: 0.6rem; }
+    .hero-title { font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: clamp(3rem, 7vw, 5.5rem); line-height: 0.9; color: var(--white); }
+    .hero-title em { font-style: italic; color: var(--burg-pale); }
+    .hero-sub { margin-top: 0.75rem; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.06em; line-height: 1.7; }
+    .hero-divider { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; }
+    .hero-stats { display: flex; gap: 3rem; flex-wrap: wrap; }
+    .h-stat { display: flex; flex-direction: column; gap: 0.15rem; }
+    .h-stat-val { font-family: 'Cormorant Garamond', serif; font-size: 2.4rem; font-weight: 300; color: var(--white); line-height: 1; }
+    .h-stat-label { font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+
+    /* PRICE TOGGLE */
+    .price-toggle { display: flex; align-items: center; gap: 0.75rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 0.55rem 1.1rem; cursor: pointer; transition: border-color 0.3s; user-select: none; }
+    .price-toggle:hover { border-color: var(--burg-mid); }
+    .toggle-label { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cream3); }
+    .toggle-pill { width: 38px; height: 21px; background: var(--burg); border-radius: 11px; position: relative; transition: background 0.3s; }
+    .toggle-pill::after { content: ''; position: absolute; top: 3px; left: 3px; width: 15px; height: 15px; background: var(--white); border-radius: 50%; transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+    body.prices-off .toggle-pill { background: var(--surface3); }
+    body.prices-off .toggle-pill::after { transform: translateX(17px); background: var(--muted); }
+    .price-val { transition: filter 0.4s, opacity 0.4s; }
+    body.prices-off .price-val { filter: blur(7px); opacity: 0.35; pointer-events: none; }
+
+    /* LAYOUT */
+    .section { padding: 0 3.5rem 2.5rem; position: relative; z-index: 1; }
+    .sec-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+    .sec-title { font-family: 'Cinzel', serif; font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--burg-pale); white-space: nowrap; }
+    .sec-line { flex: 1; height: 1px; background: var(--border); }
+
+    /* KPI STRIP */
+    .kpi-strip { display: grid; grid-template-columns: repeat(5, 1fr); max-width: 100%; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 2.5rem; }
+    .kpi { background: var(--surface); padding: 1.2rem 1.4rem; position: relative; }
+    .kpi::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; }
+    .kpi:nth-child(1)::after  { background: linear-gradient(90deg, var(--burg), var(--burg-light)); }
+    .kpi:nth-child(2)::after  { background: linear-gradient(90deg, var(--burg-pale), var(--rose)); }
+    .kpi:nth-child(3)::after  { background: linear-gradient(90deg, var(--gold), var(--gold-light)); }
+    .kpi:nth-child(4)::after  { background: linear-gradient(90deg, var(--cream2), var(--cream)); }
+    .kpi:nth-child(5)::after  { background: linear-gradient(90deg, var(--green), var(--green-light)); }
+    .kpi:nth-child(6)::after  { background: linear-gradient(90deg, var(--burg-mid), var(--burg-pale)); }
+    .kpi:nth-child(7)::after  { background: linear-gradient(90deg, var(--rose), var(--burg-pale)); }
+    .kpi:nth-child(8)::after  { background: linear-gradient(90deg, var(--gold-light), var(--cream2)); }
+    .kpi:nth-child(9)::after  { background: linear-gradient(90deg, var(--green), var(--cream2)); }
+    .kpi:nth-child(10)::after { background: linear-gradient(90deg, var(--burg-light), var(--rose)); }
+    .kpi-label { font-size: 0.57rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
+    .kpi-val { font-family: 'Cormorant Garamond', serif; font-size: 1.85rem; font-weight: 400; color: var(--white); line-height: 1; }
+    .kpi-sub { font-size: 0.58rem; color: var(--muted); margin-top: 0.2rem; }
+
+    /* CARD */
+    .card { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; overflow: hidden; }
+    .card-head { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border2); display: flex; justify-content: space-between; align-items: center; }
+    .card-title { font-family: 'Cinzel', serif; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--burg-pale); }
+
+    /* CHARTS ROW */
+    .charts-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2.5rem; }
+    .chart-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 1.25rem; }
+    .chart-title { font-family: 'Cinzel', serif; font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--burg-pale); margin-bottom: 1rem; }
+    .donut-wrap { display: flex; align-items: center; gap: 1.25rem; }
+    .donut-legend { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
+    .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.65rem; color: var(--cream2); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .legend-pct { margin-left: auto; color: var(--muted); font-size: 0.6rem; }
+
+    /* STORAGE */
+    .storage-bars { padding: 0.25rem 0; display: flex; flex-direction: column; gap: 0.9rem; }
+    .stor-row { display: flex; flex-direction: column; gap: 0.3rem; }
+    .stor-header { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--cream2); }
+    .stor-track { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+    .stor-fill { height: 100%; border-radius: 4px; }
+
+    /* HIGHLIGHTS */
+    .hl-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+    .hl-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 1.25rem; animation: fadeUp 0.5s cubic-bezier(.16,1,.3,1) both; }
+    .hl-icon { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    .hl-label { font-size: 0.57rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.25rem; }
+    .hl-val { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 600; color: var(--white); line-height: 1.25; }
+    .hl-sub { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
+
+    /* TOP 5 + TIMELINE side by side */
+    .split-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem; }
+
+    /* TIMELINE */
+    .tl-wrap { padding: 0.75rem 1.25rem; display: flex; flex-direction: column; gap: 0.55rem; }
+    .tl-item { display: grid; grid-template-columns: 160px 1fr 72px; align-items: center; gap: 0.75rem; }
+    .tl-name { font-size: 0.68rem; color: var(--text); line-height: 1.25; }
+    .tl-yr { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 0.65rem; color: var(--muted); }
+    .tl-track { height: 7px; background: var(--surface3); border-radius: 4px; position: relative; overflow: visible; }
+    .tl-fill { position: absolute; height: 100%; border-radius: 4px; top: 0; opacity: 0.65; }
+    .tl-needle { position: absolute; top: -5px; width: 2px; height: 17px; background: var(--burg-light); border-radius: 1px; z-index: 2; box-shadow: 0 0 5px rgba(216,64,96,0.6); }
+
+    /* STATUS BADGES */
+    .ds { display: inline-block; font-size: 0.55rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.12rem 0.45rem; border-radius: 100px; }
+    .ds-now    { background: rgba(216,64,96,0.2); color: var(--burg-light); border: 1px solid rgba(216,64,96,0.35); }
+    .ds-peak   { background: rgba(212,160,96,0.15); color: var(--gold-light); border: 1px solid rgba(212,160,96,0.3); }
+    .ds-wait   { background: rgba(154,112,120,0.2); color: var(--muted); border: 1px solid var(--border); }
+    .ds-passed { background: rgba(60,20,30,0.5); color: #6a4050; border: 1px solid rgba(80,30,40,0.5); }
+
+    /* WINE TABLE */
+    .wine-table { width: 100%; border-collapse: collapse; }
+    .wine-table th { font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding: 0.6rem 1.25rem; text-align: left; border-bottom: 1px solid var(--border2); font-weight: 400; }
+    .wine-table td { padding: 0.65rem 1.25rem; font-size: 0.72rem; color: var(--text); border-bottom: 1px solid var(--border2); }
+    .wine-table tr:last-child td { border-bottom: none; }
+    .wine-table tr:hover td { background: var(--surface2); }
+    .wine-name { font-family: 'Cormorant Garamond', serif; font-size: 0.85rem; font-weight: 600; color: var(--white); }
+    .wine-vintage { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--muted); }
+    .score-pill { display: inline-block; font-family: 'Cinzel', serif; font-size: 0.62rem; padding: 0.15rem 0.5rem; border-radius: 4px; background: rgba(212,160,96,0.12); border: 1px solid rgba(212,160,96,0.25); color: var(--gold-light); }
+    .score-pill.top { background: rgba(212,160,96,0.22); border-color: rgba(212,160,96,0.5); }
+    .loc-tag { font-size: 0.6rem; padding: 0.1rem 0.45rem; border-radius: 100px; border: 1px solid var(--border); color: var(--cream3); background: var(--surface2); }
+    .loc-thuis   { border-color: rgba(90,138,106,0.4); color: var(--green-light); background: rgba(74,122,90,0.12); }
+    .loc-bolomey { border-color: rgba(212,160,96,0.35); color: var(--gold); background: rgba(212,160,96,0.1); }
+    .loc-colaris { border-color: rgba(228,120,136,0.35); color: var(--burg-pale); background: rgba(142,26,46,0.12); }
+
+    /* PROJECTION CHART */
+    .projection-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; margin-bottom: 2.5rem; overflow: hidden; }
+    .proj-head { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .proj-title { font-family: 'Cinzel', serif; font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--burg-pale); }
+    .proj-note { font-size: 0.62rem; color: var(--muted); font-style: italic; font-family: 'Cormorant Garamond', serif; max-width: 500px; }
+    .proj-scenarios { display: flex; gap: 1.5rem; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border2); flex-wrap: wrap; }
+    .proj-scenario { display: flex; align-items: center; gap: 0.5rem; font-size: 0.65rem; }
+    .proj-dot { width: 10px; height: 3px; border-radius: 2px; }
+    .proj-milestones { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border2); border-top: 1px solid var(--border2); }
+    .proj-milestone { background: var(--surface); padding: 1rem 1.5rem; }
+    .pm-label { font-size: 0.57rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
+    .pm-val { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; color: var(--white); }
+    .pm-sub { font-size: 0.62rem; color: var(--muted); margin-top: 0.15rem; }
+    svg.proj-svg { width: 100%; display: block; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    footer { text-align: center; padding: 2.5rem; font-size: 0.58rem; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; border-top: 1px solid var(--border2); position: relative; z-index: 1; }
+    .div-line { width: 80px; height: 1px; background: linear-gradient(90deg, transparent, var(--burg-mid), transparent); margin: 0 auto 1.25rem; }
+    @media (max-width: 900px) {
+      .hero, .section { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .split-row, .charts-row { grid-template-columns: 1fr; }
+      .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+      .tl-item { grid-template-columns: 110px 1fr 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-top">
+    <div>
+      <div class="hero-eyebrow">Persoonlijke collectie · Bordeaux & meer</div>
+      <div class="hero-title">Wijn<em>kelder</em></div>
+      <div class="hero-sub" id="hero-sub">114 kisten · 684 flessen · klassieke châteaux uit Margaux, St Estèphe en verder</div>
+    </div>
+    <div class="price-toggle" onclick="togglePrices()">
+      <span class="toggle-label">🫣 Prijzen</span>
+      <div class="toggle-pill"></div>
+    </div>
+  </div>
+  <div class="hero-divider">
+    <div class="hero-stats">
+      <div class="h-stat"><div class="h-stat-val price-val" id="hero-kosten">€40,030</div><div class="h-stat-label">Totale investering</div></div>
+      <div class="h-stat"><div class="h-stat-val" id="hero-flessen">684</div><div class="h-stat-label">Flessen</div></div>
+      <div class="h-stat"><div class="h-stat-val" id="hero-kisten">114</div><div class="h-stat-label">Kisten</div></div>
+      <div class="h-stat"><div class="h-stat-val price-val" id="hero-pkist">€351</div><div class="h-stat-label">Gem. per kist</div></div>
+      <div class="h-stat"><div class="h-stat-val price-val" id="hero-pfles">€58</div><div class="h-stat-label">Gem. per fles</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- KPI STRIP -->
+<div class="section">
+  <div class="kpi-strip" style="grid-template-columns:repeat(5,1fr)">
+    <div class="kpi"><div class="kpi-label">Gem. score</div><div class="kpi-val">92<span style="font-size:1.1rem">/100</span></div><div class="kpi-sub">Alle wijnen gemiddeld</div></div>
+    <div class="kpi"><div class="kpi-label">Hoogste score</div><div class="kpi-val">97</div><div class="kpi-sub">Rauzan-Ségla 2022 & 2023</div></div>
+    <div class="kpi"><div class="kpi-label">Drink nu</div><div class="kpi-val" id="kpi-now">—</div><div class="kpi-sub">Kisten in venster 2026</div></div>
+    <div class="kpi"><div class="kpi-label">Nog te wachten</div><div class="kpi-val" id="kpi-wait">—</div><div class="kpi-sub">Kisten nog niet rijp</div></div>
+    <div class="kpi"><div class="kpi-label">Score 95+</div><div class="kpi-val" id="kpi-95plus">—</div><div class="kpi-sub">Kisten met topscore</div></div>
+    <div class="kpi"><div class="kpi-label">Op hoogtepunt</div><div class="kpi-val" id="kpi-peak">—</div><div class="kpi-sub">Kisten nu op z'n best</div></div>
+    <div class="kpi"><div class="kpi-label">Margaux</div><div class="kpi-val" id="kpi-margaux">—</div><div class="kpi-sub">Van totaal aantal kisten</div></div>
+    <div class="kpi"><div class="kpi-label">Gem. score Margaux</div><div class="kpi-val" id="kpi-margaux-score">—</div><div class="kpi-sub">Vs. gem. collectie (92)</div></div>
+    <div class="kpi"><div class="kpi-label">Langst houdbaar</div><div class="kpi-val">2066</div><div class="kpi-sub">Rauzan-Ségla 2022</div></div>
+    <div class="kpi"><div class="kpi-label">Voorbij venster</div><div class="kpi-val" id="kpi-passed">—</div><div class="kpi-sub">Kisten — drink snel!</div></div>
+  </div>
+</div>
+
+<!-- HIGHLIGHTS -->
+<div class="section">
+  <div class="sec-header"><span class="sec-title">Uitgelicht</span><div class="sec-line"></div></div>
+  <div class="hl-row" id="highlights"></div>
+</div>
+
+<!-- CHARTS ROW -->
+<div class="section">
+  <div class="sec-header"><span class="sec-title">Collectie overzicht</span><div class="sec-line"></div></div>
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Regio</div>
+      <div class="donut-wrap">
+        <svg width="80" height="80" viewBox="0 0 80 80" id="donut-regio"></svg>
+        <div class="donut-legend" id="legend-regio"></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Kleur</div>
+      <div class="donut-wrap">
+        <svg width="80" height="80" viewBox="0 0 80 80" id="donut-kleur"></svg>
+        <div class="donut-legend" id="legend-kleur"></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Opslag</div>
+      <div class="storage-bars" id="storage-bars"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOP 5 + DRINKVENSTERS -->
+<div class="section">
+  <div class="split-row">
+    <div>
+      <div class="sec-header"><span class="sec-title">Top 5 wijnen op score</span><div class="sec-line"></div></div>
+      <div class="card" id="top-wines-list"></div>
+    </div>
+    <div>
+      <div class="sec-header"><span class="sec-title">Drinkvensters</span><div class="sec-line"></div>
+        <span style="font-size:0.58rem;color:var(--burg-light);white-space:nowrap;">▌= 2026</span>
+      </div>
+      <div class="card"><div class="tl-wrap" id="timeline"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- VALUE PROJECTION -->
+<div class="section">
+  <div class="sec-header"><span class="sec-title">Waardeontwikkeling — projectie 40 jaar</span><div class="sec-line"></div></div>
+  <div class="projection-card">
+    <div class="proj-head">
+      <div>
+        <div class="proj-title">Bordeaux waarde projectie 2026–2066</div>
+        <div class="proj-note">Gebaseerd op historische Bordeaux rendementen: Liv-ex 100 gemiddelde ~8%/jaar (1988–2024), academisch onderzoek 4–5% reëel rendement (1900–2012). Huidige markt is licht gedaald (-7.6% in 2025) maar fundamentals blijven sterk.</div>
+      </div>
+    </div>
+    <div class="proj-scenarios">
+      <div class="proj-scenario"><div class="proj-dot" style="background:#9a7078"></div><span style="color:var(--muted)">Conservatief — 5%/jaar</span></div>
+      <div class="proj-scenario"><div class="proj-dot" style="background:var(--gold)"></div><span style="color:var(--gold)">Basis — 8%/jaar (historisch gem.)</span></div>
+      <div class="proj-scenario"><div class="proj-dot" style="background:var(--burg-light)"></div><span style="color:var(--burg-light)">Optimistisch — 12%/jaar</span></div>
+      <div class="proj-scenario"><div class="proj-dot" style="background:var(--cream2)"></div><span style="color:var(--cream2)">Inleg (€40,030)</span></div>
+    </div>
+    <svg class="proj-svg price-val" id="proj-svg" height="280"></svg>
+    <div class="proj-milestones price-val">
+      <div class="proj-milestone">
+        <div class="pm-label">Over 10 jaar (2036)</div>
+        <div class="pm-val" id="pm-10b">—</div>
+        <div class="pm-sub" id="pm-10s">bij 8%/jaar</div>
+      </div>
+      <div class="proj-milestone">
+        <div class="pm-label">Over 20 jaar (2046)</div>
+        <div class="pm-val" id="pm-20b">—</div>
+        <div class="pm-sub" id="pm-20s">bij 8%/jaar</div>
+      </div>
+      <div class="proj-milestone">
+        <div class="pm-label">Over 40 jaar (2066)</div>
+        <div class="pm-val" id="pm-40b">—</div>
+        <div class="pm-sub" id="pm-40s">bij 8%/jaar</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FULL TABLE -->
+<div class="section">
+  <div class="sec-header"><span class="sec-title">Volledige collectie</span><div class="sec-line"></div></div>
+  <div class="card">
+    <table class="wine-table">
+      <thead>
+        <tr>
+          <th>Naam</th><th>Jaar</th><th>Score</th><th>Drinken</th>
+          <th>Regio</th><th>Kisten</th><th>Waar</th>
+          <th class="price-val">Prijs/kist</th><th class="price-val">Totaal</th>
+        </tr>
+      </thead>
+      <tbody id="wine-table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="div-line" style="margin-top:2.5rem"></div>
+<div id="last-updated" style="text-align:center;font-size:0.58rem;color:var(--muted);letter-spacing:0.1em;padding-bottom:0.75rem;position:relative;z-index:1">Statische data — koppel Google Sheet voor live updates</div>
+<footer>Wijnkelder · Persoonlijke collectie · Projecties zijn indicatief, geen financieel advies</footer>
+
+<script>
+  const NOW = 2026;
+  const MIN_YR = 2018, MAX_YR = 2068;
+
+  // ── Google Sheets API URL ─────────────────────────
+  // Replace this with your deployed Apps Script URL
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwdM4f5vhjUHJtef7hLjpK-DbP4DmCIcUJmyLqH8mcRua6fUi_vCSE4kswNoq7H5EcC/exec';
+
+  // ── Fallback static data (used if Sheet unavailable) ──
+  const STATIC_WINES = [
+    { name: "Moët & Chandon Grand Vintage",              jaar: 2013, score: 92, pkist: 337.06, window: [2020,2035], regio: "Frankrijk",    kisten: 1,  waar: "Thuis",   kleur: "Sparkling" },
+    { name: "Château Brane-Cantenac Baron de Brane",     jaar: 2015, score: 89, pkist: 155.50, window: [2018,2040], regio: "Margaux",       kisten: 1,  waar: "Thuis",   kleur: "Rood" },
+    { name: "Veuve Clicquot Vintage Brut",               jaar: 2015, score: 91, pkist: 348.00, window: [2015,2030], regio: "Frankrijk",    kisten: 1,  waar: "Thuis",   kleur: "Sparkling" },
+    { name: "Chateau Rauzan-Segla",                      jaar: 2017, score: 93, pkist: 297.00, window: [2024,2047], regio: "Margaux",       kisten: 2,  waar: "Thuis",   kleur: "Rood" },
+    { name: "Château Cos d'Estournel Les Pagodes",       jaar: 2018, score: 92, pkist: 265.20, window: [2020,2040], regio: "St Estephe",   kisten: 1,  waar: "Thuis",   kleur: "Rood" },
+    { name: "Château Brane-Cantenac",                    jaar: 2018, score: 94, pkist: 464.50, window: [2024,2050], regio: "Margaux",       kisten: 1,  waar: "Thuis",   kleur: "Rood" },
+    { name: "Baron de Brane",                            jaar: 2018, score: 90, pkist: 178.50, window: [2024,2038], regio: "Margaux",       kisten: 4,  waar: "Thuis",   kleur: "Rood" },
+    { name: "Château Tronquoy",                          jaar: 2019, score: 93, pkist: 181.50, window: [2025,2042], regio: "St Estephe",   kisten: 1,  waar: "Thuis",   kleur: "Rood" },
+    { name: "Chateau Rauzan-Segla",                      jaar: 2020, score: 95, pkist: 592.78, window: [2026,2056], regio: "Margaux",       kisten: 5,  waar: "Thuis",   kleur: "Rood" },
+    { name: "Chateau Palmer Alter Ego de Palmer",        jaar: 2020, score: 92, pkist: 452.10, window: [2025,2045], regio: "Margaux",       kisten: 1,  waar: "Thuis",   kleur: "Rood" },
+    { name: "Château Brane-Cantenac",                    jaar: 2020, score: 94, pkist: 430.26, window: [2024,2060], regio: "Margaux",       kisten: 6,  waar: "Thuis",   kleur: "Rood" },
+    { name: "Château Puygueraud Côtes de Francs",        jaar: 2020, score: 90, pkist: 119.10, window: [2023,2035], regio: "Frankrijk",    kisten: 3,  waar: "Thuis",   kleur: "Rood" },
+    { name: "G d'Estournel",                             jaar: 2020, score: 89, pkist: 161.71, window: [2022,2044], regio: "St Estephe",   kisten: 2,  waar: "Thuis",   kleur: "Rood" },
+    { name: "Château Rauzan-Ségla",                      jaar: 2021, score: 93, pkist: 478.03, window: [2026,2048], regio: "Margaux",       kisten: 7,  waar: "Thuis",   kleur: "Rood" },
+    { name: "Château Brane Cantenac",                    jaar: 2021, score: 93, pkist: 398.75, window: [2032,2055], regio: "Margaux",       kisten: 2,  waar: "Thuis",   kleur: "Rood" },
+    { name: "Baron de Brane",                            jaar: 2021, score: 88, pkist: 130.90, window: [2025,2040], regio: "Margaux",       kisten: 3,  waar: "Thuis",   kleur: "Rood" },
+    { name: "Kumeu River Mate's Vineyard Chardonnay",    jaar: 2021, score: 94, pkist: 336.17, window: [2028,2038], regio: "Nieuw Zeeland", kisten: 3,  waar: "Thuis",   kleur: "Wit" },
+    { name: "Shaw + Smith M3 Chardonnay",                jaar: 2021, score: 95, pkist: 166.50, window: [2023,2030], regio: "Australia",     kisten: 4,  waar: "Thuis",   kleur: "Wit" },
+    { name: "Chateau Rauzan-Segla",                      jaar: 2022, score: 97, pkist: 714.00, window: [2027,2066], regio: "Margaux",       kisten: 10, waar: "Thuis",   kleur: "Rood" },
+    { name: "Chateau Brane-Cantenac",                    jaar: 2022, score: 97, pkist: 510.00, window: [2025,2065], regio: "Margaux",       kisten: 10, waar: "Thuis",   kleur: "Rood" },
+    { name: "Chateau Brane-Cantenac Le Baron de Brane",  jaar: 2022, score: 91, pkist: 153.00, window: [2024,2042], regio: "Margaux",       kisten: 6,  waar: "Thuis",   kleur: "Rood" },
+    { name: "Shaw + Smith M3 Chardonnay",                jaar: 2022, score: 92, pkist: 169.14, window: [2024,2030], regio: "Australia",     kisten: 3,  waar: "Thuis",   kleur: "Wit" },
+    { name: "Kumeu River Estate Chardonnay",             jaar: 2022, score: 91, pkist: 152.78, window: [2023,2033], regio: "Nieuw Zeeland", kisten: 5,  waar: "Thuis",   kleur: "Wit" },
+    { name: "Château Rauzan-Ségla",                      jaar: 2023, score: 96, pkist: 510.00, window: [2032,2051], regio: "Margaux",       kisten: 6,  waar: "Bolomey",  kleur: "Rood" },
+    { name: "Château Brane-Cantenac",                    jaar: 2023, score: 95, pkist: 378.33, window: [2032,2051], regio: "Margaux",       kisten: 6,  waar: "Bolomey",  kleur: "Rood" },
+    { name: "Baron de Brane",                            jaar: 2023, score: 91, pkist: 147.00, window: [2027,2043], regio: "Margaux",       kisten: 4,  waar: "Bolomey",  kleur: "Rood" },
+    { name: "Baron de Brane (Magnums)",                  jaar: 2023, score: 91, pkist: 159.00, window: [2027,2043], regio: "Margaux",       kisten: 1,  waar: "Bolomey",  kleur: "Rood" },
+    { name: "Château Puygueraud",                        jaar: 2023, score: 89, pkist: 96.00,  window: [2027,2039], regio: "Frankrijk",    kisten: 1,  waar: "Bolomey",  kleur: "Rood" },
+    { name: "Chateau Tronquoy",                          jaar: 2023, score: 92, pkist: 144.00, window: [2027,2039], regio: "St Estephe",   kisten: 1,  waar: "Bolomey",  kleur: "Rood" },
+    { name: "Château du Tertre",                         jaar: 2023, score: 92, pkist: 202.50, window: [2029,2041], regio: "Margaux",       kisten: 2,  waar: "Colaris",  kleur: "Rood" },
+    { name: "Kumeu River Estate Chardonnay",             jaar: 2023, score: 90, pkist: 154.50, window: [2026,2040], regio: "Nieuw Zeeland", kisten: 6,  waar: "Thuis",   kleur: "Wit" },
+    { name: "Château Rauzan-Ségla",                      jaar: 2024, score: 95, pkist: 408.00, window: [2030,2059], regio: "Margaux",       kisten: 9,  waar: "Bolomey",  kleur: "Rood" },
+  ]; // end STATIC_WINES
+
+  // ── Fetch from Google Sheets or use static data ───
+  async function loadData() {
+    let wines = STATIC_WINES;
+    let totalValue = wines.reduce((s,w) => s + w.pkist * w.kisten, 0);
+
+    if (SHEET_URL && SHEET_URL !== 'https://script.google.com/macros/s/AKfycbzYyCsyfKcTmmFh-kknGVAo_1WukV3j0R3PVelCHzVSqkWxb00QGBYo0U4TD4UB-so0/exec') {
+      try {
+        const res = await fetch(SHEET_URL);
+        const data = await res.json();
+        if (data.wines && data.wines.length > 0) {
+          wines = data.wines;
+          totalValue = data.totalKosten || totalValue;
+          // Update last-synced indicator
+          const upd = document.getElementById('last-updated');
+          if (upd) upd.textContent = 'Gesynchroniseerd: ' + new Date(data.updated).toLocaleString('nl-NL');
+        }
+      } catch(e) {
+        console.warn('Sheet sync failed, using static data:', e);
+      }
+    }
+
+    renderDashboard(wines, totalValue);
+  }
+
+  // ── Status ────────────────────────────────────────
+  function getStatus(w) {
+    const [from, to] = w.window;
+    if (to < NOW)   return { label: 'Voorbij',    cls: 'ds-passed', col: 'var(--surface3)' };
+    if (from > NOW) return { label: 'Bewaren',    cls: 'ds-wait',   col: 'var(--muted)' };
+    const mid = from + (to - from) * 0.45;
+    if (NOW <= mid) return { label: 'Drink nu',   cls: 'ds-now',    col: 'var(--burg-light)' };
+    return             { label: 'Hoogtepunt', cls: 'ds-peak',   col: 'var(--gold)' };
+  }
+
+  function renderDashboard(wines, TOTAL_VALUE) {
+  // ── KPIs ─────────────────────────────────────────
+  const totalKisten   = wines.reduce((s,w) => s+w.kisten, 0);
+  const drinkNowCount = wines.filter(w => getStatus(w).cls === 'ds-now').reduce((s,w)=>s+w.kisten,0);
+  const waitCount     = wines.filter(w => getStatus(w).cls === 'ds-wait').reduce((s,w)=>s+w.kisten,0);
+  const score95plus   = wines.filter(w => w.score >= 95).reduce((s,w)=>s+w.kisten,0);
+  const margauxPct    = Math.round(wines.filter(w=>w.regio==='Margaux').reduce((s,w)=>s+w.kisten,0)/totalKisten*100);
+  const avgYear       = Math.round(wines.reduce((s,w)=>s+w.jaar*w.kisten,0)/totalKisten);
+  const passedCount   = wines.filter(w => getStatus(w).cls === 'ds-passed').reduce((s,w)=>s+w.kisten,0);
+
+  // Update hero stats dynamically
+  const heroKosten = TOTAL_VALUE;
+  const heroFlessen = totalKisten * 6;
+  const heroPkist = totalKisten > 0 ? Math.round(heroKosten / totalKisten) : 0;
+  const heroPfles = heroFlessen > 0 ? Math.round(heroKosten / heroFlessen) : 0;
+  document.getElementById('hero-sub').textContent = totalKisten + ' kisten · ' + heroFlessen.toLocaleString('nl-NL') + ' flessen · klassieke châteaux uit Margaux, St Estèphe en verder';
+  document.getElementById('hero-kosten').textContent  = '€' + Math.round(heroKosten).toLocaleString('nl-NL');
+  document.getElementById('hero-flessen').textContent = heroFlessen.toLocaleString('nl-NL');
+  document.getElementById('hero-kisten').textContent  = totalKisten;
+  document.getElementById('hero-pkist').textContent   = '€' + heroPkist.toLocaleString('nl-NL');
+  document.getElementById('hero-pfles').textContent   = '€' + heroPfles.toLocaleString('nl-NL');
+
+  document.getElementById('kpi-now').textContent     = drinkNowCount;
+  document.getElementById('kpi-wait').textContent    = waitCount;
+  document.getElementById('kpi-95plus').textContent  = score95plus;
+  document.getElementById('kpi-margaux').textContent = margauxPct + '%';
+  const peakCount = wines.filter(w => getStatus(w).cls === 'ds-peak').reduce((s,w)=>s+w.kisten,0);
+  document.getElementById('kpi-peak').textContent = peakCount;
+  const margauxWines = wines.filter(w => w.regio === 'Margaux' && w.score > 0);
+  const margauxAvgScore = margauxWines.length ? Math.round(margauxWines.reduce((s,w)=>s+w.score*w.kisten,0) / margauxWines.reduce((s,w)=>s+w.kisten,0)) : '—';
+  document.getElementById('kpi-margaux-score').textContent = margauxAvgScore;
+  document.getElementById('kpi-passed').textContent  = passedCount;
+
+  // ── Highlights ───────────────────────────────────
+  const bestWine      = [...wines].sort((a,b)=>b.score-a.score)[0];
+  const mostKisten    = [...wines].sort((a,b)=>b.kisten-a.kisten)[0];
+  const longestAge    = [...wines].sort((a,b)=>(b.window[1]-b.window[0])-(a.window[1]-a.window[0]))[0];
+  const drinkNowWines = wines.filter(w=>getStatus(w).cls==='ds-now');
+  const priciest      = [...wines].sort((a,b)=>b.pkist-a.pkist)[0];
+  const externKisten  = wines.filter(w=>w.waar!=='Thuis').reduce((s,w)=>s+w.kisten,0);
+
+  document.getElementById('highlights').innerHTML = [
+    { icon:'🏆', label:'Hoogste score',      val: bestWine.name,   sub: `${bestWine.jaar} · ${bestWine.score}/100` },
+    { icon:'🍾', label:'Meeste kisten',      val: mostKisten.name, sub: `${mostKisten.kisten} kisten · ${mostKisten.kisten*6} flessen` },
+    { icon:'⏳', label:'Langst te bewaren',  val: longestAge.name, sub: `Tot ${longestAge.window[1]} · ${longestAge.window[1]-longestAge.window[0]} jaar venster` },
+    { icon:'🍷', label:'Drink nú',           val: drinkNowWines.length ? drinkNowWines[0].name : '—', sub: drinkNowWines.length ? `${drinkNowWines[0].jaar} · al op z'n best` : '' },
+    { icon:'💰', label:'Duurste kist',       val: priciest.name,   sub: `€${priciest.pkist.toFixed(2)} per kist`, price: true },
+    { icon:'📍', label:'Extern opgeslagen',  val: `${externKisten} kisten`, sub: 'Bij Bolomey & Colaris' },
+  ].map((h,i)=>`
+    <div class="hl-card" style="animation-delay:${i*0.06}s">
+      <div class="hl-icon">${h.icon}</div>
+      <div class="hl-label">${h.label}</div>
+      <div class="hl-val ${h.price?'price-val':''}">${h.val}</div>
+      <div class="hl-sub ${h.price?'price-val':''}">${h.sub}</div>
+    </div>`).join('');
+
+  // ── Donuts ───────────────────────────────────────
+  function drawDonut(svgId, legendId, segments) {
+    const svg = document.getElementById(svgId);
+    const leg = document.getElementById(legendId);
+    const cx=40, cy=40, r=32, stroke=10, circ=2*Math.PI*r;
+    const total = segments.reduce((s,x)=>s+x.val,0);
+    let offset=0;
+    svg.innerHTML = segments.map(seg=>{
+      const pct=seg.val/total, dash=pct*circ, gap=circ-dash;
+      const el=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${seg.col}" stroke-width="${stroke}" stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${-offset*circ}" transform="rotate(-90 ${cx} ${cy})" opacity="0.85"/>`;
+      offset+=pct; return el;
+    }).join('');
+    leg.innerHTML = segments.map(s=>`
+      <div class="legend-item">
+        <span class="legend-dot" style="background:${s.col}"></span>
+        <span>${s.label}</span>
+        <span class="legend-pct">${Math.round(s.val/total*100)}%</span>
+      </div>`).join('');
+  }
+  const regioCounts={}, regioColors={'Margaux':'#9e1e38','St Estephe':'#d84060','Frankrijk':'#e47888','Nieuw Zeeland':'#d4a060','Australia':'#a88a78'};
+  wines.forEach(w=>{regioCounts[w.regio]=(regioCounts[w.regio]||0)+w.kisten;});
+  drawDonut('donut-regio','legend-regio',Object.entries(regioCounts).map(([k,v])=>({label:k,val:v,col:regioColors[k]||'#666'})));
+
+  const kleurCounts={}, kleurColors={'Rood':'#8e1a2e','Wit':'#d4a060','Sparkling':'#ecddd0'};
+  wines.forEach(w=>{kleurCounts[w.kleur]=(kleurCounts[w.kleur]||0)+w.kisten;});
+  drawDonut('donut-kleur','legend-kleur',Object.entries(kleurCounts).map(([k,v])=>({label:k,val:v,col:kleurColors[k]||'#666'})));
+
+  // ── Storage ───────────────────────────────────────
+  const storData=[
+    {label:'Thuis',   val:wines.filter(w=>w.waar==='Thuis').reduce((s,w)=>s+w.kisten,0),   col:'var(--green)'},
+    {label:'Bolomey', val:wines.filter(w=>w.waar==='Bolomey').reduce((s,w)=>s+w.kisten,0), col:'var(--gold)'},
+    {label:'Colaris', val:wines.filter(w=>w.waar==='Colaris').reduce((s,w)=>s+w.kisten,0), col:'var(--burg-pale)'},
+  ];
+  document.getElementById('storage-bars').innerHTML = storData.map(s=>`
+    <div class="stor-row">
+      <div class="stor-header"><span>${s.label}</span><span>${s.val} kisten</span></div>
+      <div class="stor-track"><div class="stor-fill" style="width:${(s.val/totalKisten*100).toFixed(1)}%;background:${s.col}"></div></div>
+    </div>`).join('');
+
+  // ── Top 5 ─────────────────────────────────────────
+  const topWines = [...wines].sort((a,b)=>b.score-a.score).slice(0,5);
+  document.getElementById('top-wines-list').innerHTML = topWines.map((w,i)=>`
+    <div style="display:flex;align-items:center;gap:1rem;padding:0.75rem 1.25rem;border-bottom:${i<4?'1px solid var(--border2)':'none'}">
+      <div style="font-family:'Cinzel',serif;font-size:1.2rem;color:${i===0?'var(--gold)':i===1?'var(--cream2)':i===2?'#9a7050':'var(--burg-mid)'};width:2rem;text-align:center;flex-shrink:0">${i+1}</div>
+      <div style="flex:1">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:0.9rem;font-weight:600;color:var(--white)">${w.name}</div>
+        <div style="font-size:0.62rem;color:var(--muted);margin-top:0.15rem">${w.jaar} · ${w.regio} · ${w.kisten} kist${w.kisten>1?'en':''}</div>
+      </div>
+      <div style="font-family:'Cinzel',serif;font-size:0.75rem;color:var(--gold);background:rgba(212,160,96,0.1);border:1px solid rgba(212,160,96,0.25);border-radius:4px;padding:0.2rem 0.5rem">${w.score}/100</div>
+    </div>`).join('');
+
+  // ── Timeline ──────────────────────────────────────
+  const range=MAX_YR-MIN_YR, nowPct=((NOW-MIN_YR)/range*100).toFixed(2);
+  const tlSorted=[...wines].sort((a,b)=>a.window[0]-b.window[0]);
+  document.getElementById('timeline').innerHTML = tlSorted.map(w=>{
+    const st=getStatus(w);
+    const from=Math.max(w.window[0],MIN_YR), to=Math.min(w.window[1],MAX_YR);
+    const left=((from-MIN_YR)/range*100).toFixed(2), width=((to-from)/range*100).toFixed(2);
+    return `<div class="tl-item">
+      <div><div class="tl-name">${w.name}</div><div class="tl-yr">${w.jaar}</div></div>
+      <div class="tl-track">
+        <div class="tl-fill" style="left:${left}%;width:${width}%;background:${st.col}"></div>
+        <div class="tl-needle" style="left:${nowPct}%"></div>
+      </div>
+      <div style="text-align:right"><span class="ds ${st.cls}">${st.label}</span></div>
+    </div>`;
+  }).join('');
+
+  // ── Value Projection Chart ────────────────────────
+  (function() {
+    const BASE = TOTAL_VALUE;
+    const YEARS = 40, START = NOW;
+    const rates = { cons: 0.05, base: 0.08, opt: 0.12 };
+
+    function project(rate) {
+      return Array.from({length: YEARS+1}, (_,i) => Math.round(BASE * Math.pow(1+rate, i)));
+    }
+    const cons = project(rates.cons);
+    const base = project(rates.base);
+    const opt  = project(rates.opt);
+
+    // Milestones
+    const fmt = v => '€' + (v>=1000000 ? (v/1000000).toFixed(1)+'M' : Math.round(v/1000)+'k');
+    document.getElementById('pm-10b').textContent = fmt(base[10]);
+    document.getElementById('pm-20b').textContent = fmt(base[20]);
+    document.getElementById('pm-40b').textContent = fmt(base[40]);
+
+    // Draw SVG
+    const svgEl = document.getElementById('proj-svg');
+    const W = svgEl.parentElement.clientWidth || 800;
+    const H = 280, pad = { t: 20, r: 30, b: 40, l: 70 };
+    const cW = W - pad.l - pad.r, cH = H - pad.t - pad.b;
+    svgEl.setAttribute('width', W);
+    svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+    const maxVal = opt[YEARS];
+    const xScale = i => pad.l + (i/YEARS)*cW;
+    const yScale = v => pad.t + cH - (v/maxVal)*cH;
+
+    function makePath(data) {
+      return data.map((v,i) => `${i===0?'M':'L'}${xScale(i).toFixed(1)},${yScale(v).toFixed(1)}`).join(' ');
+    }
+
+    // Grid lines
+    const gridVals = [0, BASE, BASE*2, BASE*5, BASE*10, maxVal].filter((v,i,a)=>a.indexOf(v)===i && v<=maxVal);
+    let svg = '';
+
+    gridVals.forEach(v => {
+      const y = yScale(v).toFixed(1);
+      svg += `<line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="rgba(210,110,130,0.12)" stroke-width="1"/>`;
+      svg += `<text x="${pad.l-8}" y="${parseFloat(y)+4}" text-anchor="end" font-size="10" fill="#9a7078" font-family="DM Sans,sans-serif">${fmt(v)}</text>`;
+    });
+
+    // Year labels
+    [0,10,20,30,40].forEach(i=>{
+      const x = xScale(i).toFixed(1);
+      svg += `<text x="${x}" y="${H-8}" text-anchor="middle" font-size="10" fill="#9a7078" font-family="DM Sans,sans-serif">${START+i}</text>`;
+    });
+
+    // Inleg baseline
+    const baseY = yScale(BASE).toFixed(1);
+    svg += `<line x1="${pad.l}" y1="${baseY}" x2="${W-pad.r}" y2="${baseY}" stroke="rgba(212,192,172,0.35)" stroke-width="1.5" stroke-dasharray="5,4"/>`;
+
+    // Fill areas (light)
+    svg += `<path d="${makePath(opt)} L${xScale(YEARS)},${yScale(0)} L${xScale(0)},${yScale(0)} Z" fill="rgba(216,64,96,0.07)"/>`;
+    svg += `<path d="${makePath(base)} L${xScale(YEARS)},${yScale(0)} L${xScale(0)},${yScale(0)} Z" fill="rgba(212,160,96,0.09)"/>`;
+
+    // Lines
+    svg += `<path d="${makePath(cons)}" fill="none" stroke="rgba(154,112,120,0.7)" stroke-width="1.5" stroke-dasharray="5,4"/>`;
+    svg += `<path d="${makePath(base)}" fill="none" stroke="var(--gold)" stroke-width="2"/>`;
+    svg += `<path d="${makePath(opt)}"  fill="none" stroke="var(--burg-light)" stroke-width="2"/>`;
+
+    // NOW line
+    svg += `<line x1="${xScale(0)}" y1="${pad.t}" x2="${xScale(0)}" y2="${H-pad.b}" stroke="rgba(216,64,96,0.5)" stroke-width="1.5"/>`;
+    svg += `<text x="${xScale(0)+5}" y="${pad.t+14}" font-size="10" fill="var(--burg-pale)" font-family="Cinzel,serif">Nu</text>`;
+
+    svgEl.innerHTML = svg;
+  })();
+
+  // ── Full table ───────────────────────────────────
+  const locCls = w => w.waar==='Thuis'?'loc-thuis':w.waar==='Bolomey'?'loc-bolomey':'loc-colaris';
+  document.getElementById('wine-table-body').innerHTML = wines.map(w=>{
+    const st=getStatus(w);
+    return `<tr>
+      <td><div class="wine-name">${w.name}</div></td>
+      <td><span class="wine-vintage">${w.jaar}</span></td>
+      <td><span class="score-pill ${w.score>=95?'top':''}">${w.score}</span></td>
+      <td>${w.window[0]}–${w.window[1]}<br><span class="ds ${st.cls}">${st.label}</span></td>
+      <td style="font-size:0.68rem;color:var(--cream2)">${w.regio}</td>
+      <td style="text-align:center">${w.kisten}</td>
+      <td><span class="loc-tag ${locCls(w)}">${w.waar}</span></td>
+      <td class="price-val" style="font-family:'Cormorant Garamond',serif;font-size:0.9rem">€${w.pkist.toFixed(2)}</td>
+      <td class="price-val" style="font-family:'Cormorant Garamond',serif;font-size:0.9rem;color:var(--cream2)">€${(w.pkist*w.kisten).toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+
+  } // end renderDashboard
+
+  // ── Price toggle ─────────────────────────────────
+  let pricesOn = true;
+  function togglePrices() {
+    pricesOn = !pricesOn;
+    document.body.classList.toggle('prices-off', !pricesOn);
+  }
+
+  // ── Boot ─────────────────────────────────────────
+  loadData();
+</script>
+</body>
+</html>
